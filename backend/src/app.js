@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 
 const logger = require("./middleware/loggerMiddleware");
 const errorHandler = require("./middleware/errorMiddleware");
+const authRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -24,6 +25,9 @@ app.use(
 
 // Logger Middleware
 app.use(logger);
+
+// Auth Routes
+app.use("/api/auth", authRoutes);
 
 // Home Route
 app.get("/", (req, res) => {
