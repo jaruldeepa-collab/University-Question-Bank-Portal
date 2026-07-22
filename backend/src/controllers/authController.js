@@ -8,7 +8,6 @@ const registerUser = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Check existing user
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -18,7 +17,6 @@ const registerUser = async (req, res, next) => {
       });
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -26,8 +24,8 @@ const registerUser = async (req, res, next) => {
       role,
     });
 
-    // Generate JWT
-    const token = generateToken(user._id);
+    // Generate JWT & Set Cookie
+    const token = generateToken(res, user._id);
 
     res.status(201).json({
       success: true,
@@ -45,9 +43,6 @@ const registerUser = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  registerUser,
-};
 // @desc    Login User
 // @route   POST /api/auth/login
 // @access  Public
@@ -55,7 +50,6 @@ const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Check email
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
@@ -65,7 +59,6 @@ const loginUser = async (req, res, next) => {
       });
     }
 
-    // Check password
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
@@ -75,8 +68,8 @@ const loginUser = async (req, res, next) => {
       });
     }
 
-    // Generate JWT
-    const token = generateToken(user._id);
+    // Generate JWT & Set Cookie
+    const token = generateToken(res, user._id);
 
     res.status(200).json({
       success: true,
@@ -89,12 +82,39 @@ const loginUser = async (req, res, next) => {
         role: user.role,
       },
     });
-
   } catch (error) {
     next(error);
   }
 };
+
+// @desc    Logout User
+// @route   POST /api/auth/logout
+// @access  Private
+const logoutUser = (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
+
+// @desc    Get Current User
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
+  getMe,
 };
