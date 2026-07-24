@@ -111,10 +111,41 @@ const getMe = async (req, res) => {
     user: req.user,
   });
 };
+// @desc    Admin Route
+// @route   GET /api/auth/admin
+// @access  Private/Admin
+const adminRoute = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome Admin",
+  });
+};
 
+// @desc    Faculty Route
+// @route   GET /api/auth/faculty
+// @access  Private/Faculty
+const facultyRoute = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome Faculty",
+  });
+};
+
+// @desc    Student Route
+// @route   GET /api/auth/student
+// @access  Private/Student
+const studentRoute = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome Student",
+  });
+};
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getMe,
+  adminRoute,
+  facultyRoute,
+  studentRoute,
 };
