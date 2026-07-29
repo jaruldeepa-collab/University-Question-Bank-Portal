@@ -3,8 +3,10 @@ const express = require("express");
 const {
   registerUser,
   loginUser,
- logoutUser,
+  logoutUser,
   getMe,
+  forgotPassword,
+  resetPassword,
   adminRoute,
   facultyRoute,
   studentRoute,
@@ -14,15 +16,19 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Public Routes
+// Authentication
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/logout", logoutUser);
 
-// Protected Routes
-router.post("/logout", protect, logoutUser);
+// Password Reset
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:token", resetPassword);
+
+// Current User
 router.get("/me", protect, getMe);
 
-// Role-Based Protected Routes
+// Role-Based Routes
 router.get("/admin", protect, authorize("admin"), adminRoute);
 router.get("/faculty", protect, authorize("faculty"), facultyRoute);
 router.get("/student", protect, authorize("student"), studentRoute);
