@@ -1,3 +1,4 @@
+const subjectRoutes = require("./routes/subjectRoutes");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -42,6 +43,7 @@ app.use(logger);
 // ==========================
 app.use("/api/auth", authRoutes);
 app.use("/api/departments", departmentRoutes);
+app.use("/api/subjects", subjectRoutes);
 
 // ==========================
 // Home Route
