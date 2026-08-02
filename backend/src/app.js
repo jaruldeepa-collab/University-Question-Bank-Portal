@@ -1,3 +1,4 @@
+const questionPaperRoutes = require("./routes/questionPaperRoutes");
 const subjectRoutes = require("./routes/subjectRoutes");
 const express = require("express");
 const cors = require("cors");
@@ -44,6 +45,7 @@ app.use(logger);
 app.use("/api/auth", authRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/subjects", subjectRoutes);
+app.use("/api/question-papers", questionPaperRoutes);
 
 // ==========================
 // Home Route
