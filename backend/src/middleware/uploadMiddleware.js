@@ -4,15 +4,21 @@ const cloudinary = require("../config/cloudinary");
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: "question-papers",
-    resource_type: "raw",
-    allowed_formats: ["pdf"],
+  params: async (req, file) => {
+    const cleanFileName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_");
+    return {
+      folder: "question-papers",
+      resource_type: "auto",
+      public_id: `${Date.now()}_${cleanFileName}`,
+    };
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf") {
+  if (
+    file.mimetype === "application/pdf" ||
+    file.originalname.toLowerCase().endsWith(".pdf")
+  ) {
     cb(null, true);
   } else {
     cb(new Error("Only PDF files are allowed"), false);

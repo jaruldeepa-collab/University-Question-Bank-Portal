@@ -4,6 +4,9 @@ const {
   uploadQuestionPaper,
   getMyUploads,
   updateQuestionPaper,
+  getQuestionPapers,
+  getQuestionPaperById,
+  deleteQuestionPaper,
 } = require("../controllers/questionPaperController");
 
 const upload = require("../middleware/uploadMiddleware");
@@ -11,7 +14,11 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Upload Question Paper
+// Public Routes
+router.get("/", getQuestionPapers);
+router.get("/:id", getQuestionPaperById);
+
+// Faculty/Admin Routes
 router.post(
   "/",
   protect,
@@ -20,7 +27,6 @@ router.post(
   uploadQuestionPaper
 );
 
-// Get My Uploads
 router.get(
   "/my-uploads",
   protect,
@@ -28,12 +34,18 @@ router.get(
   getMyUploads
 );
 
-// Update Question Paper
 router.put(
   "/:id",
   protect,
   authorize("faculty", "admin"),
   updateQuestionPaper
+);
+
+router.delete(
+  "/:id",
+  protect,
+  authorize("faculty", "admin"),
+  deleteQuestionPaper
 );
 
 module.exports = router;
