@@ -307,3 +307,33 @@ exports.searchQuestionPapers = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Filter Question Papers
+// @route   GET /api/question-papers/filter
+// @access  Public
+exports.filterQuestionPapers = async (req, res, next) => {
+  try {
+    const { department, semester, year, regulation, examType } = req.query;
+
+    let query = {};
+
+    if (department) query.department = department;
+    if (semester) query.semester = Number(semester);
+    if (year) query.year = Number(year);
+    if (regulation) query.regulation = regulation;
+    if (examType) query.examType = examType;
+
+    const papers = await QuestionPaper.find(query)
+      .populate("department", "name code")
+      .populate("subject", "name code")
+      .populate("uploadedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: papers.length,
+      papers,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

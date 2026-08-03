@@ -8,6 +8,8 @@ const {
   getQuestionPaperById,
   deleteQuestionPaper,
   searchQuestionPapers,
+  filterQuestionPapers,
+
 } = require("../controllers/questionPaperController");
 
 const upload = require("../middleware/uploadMiddleware");
@@ -17,6 +19,7 @@ const router = express.Router();
 
 // Public Routes
 router.get("/search", searchQuestionPapers);
+router.get("/filter", filterQuestionPapers);
 router.get("/", getQuestionPapers);
 router.get("/:id", getQuestionPaperById);
 
