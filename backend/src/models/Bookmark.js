@@ -7,7 +7,6 @@ const bookmarkSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Student is required"],
     },
-
     questionPaper: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "QuestionPaper",
@@ -19,7 +18,6 @@ const bookmarkSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate bookmarks
 bookmarkSchema.index(
   {
     student: 1,

@@ -1,5 +1,4 @@
-const questionPaperRoutes = require("./routes/questionPaperRoutes");
-const subjectRoutes = require("./routes/subjectRoutes");
+
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -10,6 +9,10 @@ const errorHandler = require("./middleware/errorMiddleware");
 // Routes
 const authRoutes = require("./routes/userRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
+const subjectRoutes = require("./routes/subjectRoutes");
+const questionPaperRoutes = require("./routes/questionPaperRoutes");
+const bookmarkRoutes = require("./routes/bookmarkRoutes");
+const downloadHistoryRoutes = require("./routes/downloadHistoryRoutes");
 
 const app = express();
 
@@ -53,6 +56,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/question-papers", questionPaperRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/download-history", downloadHistoryRoutes);
+
 
 // ==========================
 // Home Route
