@@ -7,6 +7,7 @@ const {
   getQuestionPapers,
   getQuestionPaperById,
   deleteQuestionPaper,
+  searchQuestionPapers,
 } = require("../controllers/questionPaperController");
 
 const upload = require("../middleware/uploadMiddleware");
@@ -15,6 +16,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Public Routes
+router.get("/search", searchQuestionPapers);
 router.get("/", getQuestionPapers);
 router.get("/:id", getQuestionPaperById);
 

@@ -234,3 +234,76 @@ exports.deleteQuestionPaper = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Search Question Papers
+// @route   GET /api/question-papers/search
+// @access  Public
+exports.searchQuestionPapers = async (req, res, next) => {
+  try {
+    const { keyword } = req.query;
+
+    let query = {};
+
+    if (keyword) {
+      query = {
+        $or: [
+          { title: { $regex: keyword, $options: "i" } },
+        ],
+      };
+    }
+
+    const papers = await QuestionPaper.find(query)
+      .populate({
+        path: "subject",
+        select: "name code",
+      })
+      .populate("department", "name code")
+      .populate("uploadedBy", "name email");
+
+    // Filter by subject name or subject code
+    const filteredPapers = papers.filter((paper) => {
+      if (!keyword) return true;
+
+      const subjectName = paper.subject?.name || "";
+      const subjectCode = paper.subject?.code || "";
+
+      return (
+        paper.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        subjectName.toLowerCase().includes(keyword.toLowerCase()) ||
+        subjectCode.toLowerCase().includes(keyword.toLowerCase())
+      );
+    });
+
+    res.status(200).json({
+      success: true,
+      count: filteredPapers.length,
+      papers: filteredPapers,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+// @desc    Search Question Papers
+// @route   GET /api/question-papers/search
+// @access  Public
+exports.searchQuestionPapers = async (req, res, next) => {
+  try {
+    const { keyword } = req.query;
+
+    const papers = await QuestionPaper.find({
+      title: {
+        $regex: keyword || "",
+        $options: "i",
+      },
+    })
+      .populate("department", "name code")
+      .populate("subject", "name code");
+
+    res.status(200).json({
+      success: true,
+      count: papers.length,
+      papers,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
