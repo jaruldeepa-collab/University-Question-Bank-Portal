@@ -15,6 +15,7 @@ const bookmarkRoutes = require("./routes/bookmarkRoutes");
 const downloadHistoryRoutes = require("./routes/downloadHistoryRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const userManagementRoutes = require("./routes/userManagementRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/download-history", downloadHistoryRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userManagementRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 
 // ==========================

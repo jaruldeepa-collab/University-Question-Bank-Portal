@@ -149,17 +149,30 @@ exports.updateQuestionPaper = async (req, res, next) => {
   }
 };
 
-// Get All Question Papers
+// Get All Question Papers with Pagination & Sorting
 exports.getQuestionPapers = async (req, res, next) => {
   try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const sort = req.query.sort || "-createdAt";
+
+    const skip = (page - 1) * limit;
+
+    const total = await QuestionPaper.countDocuments();
+
     const papers = await QuestionPaper.find()
       .populate("department", "name code")
       .populate("subject", "name code")
       .populate("uploadedBy", "name email")
-      .sort({ createdAt: -1 });
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       success: true,
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalResults: total,
       count: papers.length,
       papers,
     });
@@ -282,31 +295,7 @@ exports.searchQuestionPapers = async (req, res, next) => {
     next(error);
   }
 };
-// @desc    Search Question Papers
-// @route   GET /api/question-papers/search
-// @access  Public
-exports.searchQuestionPapers = async (req, res, next) => {
-  try {
-    const { keyword } = req.query;
 
-    const papers = await QuestionPaper.find({
-      title: {
-        $regex: keyword || "",
-        $options: "i",
-      },
-    })
-      .populate("department", "name code")
-      .populate("subject", "name code");
-
-    res.status(200).json({
-      success: true,
-      count: papers.length,
-      papers,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 // @desc    Filter Question Papers
 // @route   GET /api/question-papers/filter
 // @access  Public
