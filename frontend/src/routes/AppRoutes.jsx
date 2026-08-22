@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 import HomePage from "../pages/HomePage";
+import SearchPapersPage from "../pages/SearchPapersPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -12,7 +13,9 @@ function NotFoundPage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <h1 className="text-6xl font-bold text-red-500">404</h1>
+        <h1 className="text-6xl font-bold text-red-500">
+          404
+        </h1>
 
         <p className="mt-3 text-xl text-slate-600">
           Page Not Found
@@ -26,23 +29,33 @@ function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-  <Route element={<MainLayout />}>
-    <Route path="/" element={<HomePage />} />
-  </Route>
-</Route>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/search"
+              element={<SearchPapersPage />}
+            />
+          </Route>
+        </Route>
 
+        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-  path="/forgot-password"
-  element={<ForgotPasswordPage />}
-/>
-<Route
-  path="/reset-password/:token"
-  element={<ResetPasswordPage />}
-/>
 
+        <Route path="/register" element={<RegisterPage />} />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
+        />
+
+        <Route
+          path="/reset-password/:token"
+          element={<ResetPasswordPage />}
+        />
+
+        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
