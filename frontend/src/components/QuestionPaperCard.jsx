@@ -1,11 +1,71 @@
+import { useEffect, useState } from "react";
+import api from "../services/api";
+
 function QuestionPaperCard({
   paper,
   onPreview,
   onDownload,
 }) {
+  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
+  useEffect(() => {
+    const checkBookmarkStatus = async () => {
+      try {
+        const response = await api.get("/bookmarks");
+
+        if (response.data.success) {
+          const exists = response.data.bookmarks?.some(
+            (bookmark) =>
+              bookmark.questionPaper?._id === paper._id
+          );
+
+          setBookmarked(exists);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to check bookmark status:",
+          error
+        );
+      }
+    };
+
+    if (paper?._id) {
+      checkBookmarkStatus();
+    }
+  }, [paper?._id]);
+
+  const handleBookmark = async () => {
+    if (!paper?._id || bookmarkLoading) {
+      return;
+    }
+
+    try {
+      setBookmarkLoading(true);
+
+      if (bookmarked) {
+        await api.delete(`/bookmarks/${paper._id}`);
+        setBookmarked(false);
+      } else {
+        await api.post(`/bookmarks/${paper._id}`);
+        setBookmarked(true);
+      }
+    } catch (error) {
+      console.error("Bookmark action failed:", error);
+
+      alert(
+        error.response?.data?.message ||
+          "Failed to update bookmark."
+      );
+    } finally {
+      setBookmarkLoading(false);
+    }
+  };
+
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <div className="flex flex-col gap-5">
+
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -25,6 +85,30 @@ function QuestionPaperCard({
               </div>
             </div>
           </div>
+
+          {/* Bookmark */}
+          <button
+            type="button"
+            onClick={handleBookmark}
+            disabled={bookmarkLoading}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg transition ${
+              bookmarked
+                ? "bg-blue-100 text-blue-600"
+                : "text-slate-400 hover:bg-slate-100 hover:text-blue-600"
+            } disabled:cursor-not-allowed disabled:opacity-50`}
+            title={
+              bookmarked
+                ? "Remove bookmark"
+                : "Add bookmark"
+            }
+            aria-label={
+              bookmarked
+                ? "Remove bookmark"
+                : "Add bookmark"
+            }
+          >
+            {bookmarkLoading ? "…" : "🔖"}
+          </button>
         </div>
 
         {/* Details */}

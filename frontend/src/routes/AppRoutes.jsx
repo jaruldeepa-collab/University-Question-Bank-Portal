@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import HomePage from "../pages/HomePage";
 import SearchPapersPage from "../pages/SearchPapersPage";
+import BookmarksPage from "../pages/BookmarksPage";
+import DownloadHistoryPage from "../pages/DownloadHistoryPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -32,12 +34,23 @@ function AppRoutes() {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route
-              path="/search"
-              element={<SearchPapersPage />}
-            />
-          </Route>
+  <Route path="/" element={<HomePage />} />
+
+  <Route
+    path="/search"
+    element={<SearchPapersPage />}
+  />
+
+  <Route
+    path="/bookmarks"
+    element={<BookmarksPage />}
+  />
+
+  <Route
+    path="/downloads"
+    element={<DownloadHistoryPage />}
+  />
+</Route>
         </Route>
 
         {/* Public Routes */}
