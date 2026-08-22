@@ -3,7 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   user: null,
   isAuthenticated: false,
-  loading: false,
+
+  // Authentication check starts when the app loads
+  loading: true,
+
   error: null,
 };
 
