@@ -4,10 +4,11 @@ import api from "../services/api";
 import SearchBar from "../components/SearchBar";
 import PaperFilters from "../components/PaperFilters";
 import Pagination from "../components/Pagination";
+import QuestionPaperCard from "../components/QuestionPaperCard";
+import PdfPreviewModal from "../components/PdfPreviewModal";
 
 function SearchPapersPage() {
   const [papers, setPapers] = useState([]);
-
   const [keyword, setKeyword] = useState("");
 
   const [filters, setFilters] = useState({
@@ -25,6 +26,8 @@ function SearchPapersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [selectedPaper, setSelectedPaper] = useState(null);
+
   const hasFilters = Object.values(filters).some(
     (value) => value !== ""
   );
@@ -34,7 +37,6 @@ function SearchPapersPage() {
       setLoading(true);
       setError("");
 
-      // Search
       if (keyword) {
         const response = await api.get(
           `/question-papers/search?keyword=${encodeURIComponent(
@@ -51,7 +53,6 @@ function SearchPapersPage() {
         return;
       }
 
-      // Advanced Filters
       if (hasFilters) {
         const params = new URLSearchParams();
 
@@ -88,7 +89,6 @@ function SearchPapersPage() {
         return;
       }
 
-      // Normal pagination
       const response = await api.get(
         `/question-papers?page=${currentPage}&limit=10`
       );
@@ -154,6 +154,44 @@ function SearchPapersPage() {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const handlePreview = (paper) => {
+    setSelectedPaper(paper);
+  };
+
+  const handleClosePreview = () => {
+    setSelectedPaper(null);
+  };
+
+  const handleDownload = async (paper) => {
+    if (!paper.pdfUrl) {
+      setError("PDF is not available for this question paper.");
+      return;
+    }
+
+    try {
+      setError("");
+
+      const link = document.createElement("a");
+
+      link.href = paper.pdfUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Save download history
+      await api.post(`/download-history/${paper._id}`);
+    } catch (err) {
+      console.error("Failed to save download history:", err);
+
+      setError(
+        "The PDF opened, but download history could not be saved."
+      );
+    }
   };
 
   return (
@@ -227,67 +265,20 @@ function SearchPapersPage() {
           <p className="mt-2 text-sm text-red-600">
             {error}
           </p>
-
-          <button
-            type="button"
-            onClick={fetchPapers}
-            className="mt-4 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
-          >
-            Try Again
-          </button>
         </section>
       )}
 
       {/* Results */}
-      {!loading && !error && papers.length > 0 && (
+      {!loading && papers.length > 0 && (
         <>
-          <section className="space-y-4">
+          <section className="grid gap-5 lg:grid-cols-2">
             {papers.map((paper) => (
-              <div
+              <QuestionPaperCard
                 key={paper._id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-800">
-                      {paper.title}
-                    </h3>
-
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      {paper.department?.name && (
-                        <span className="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">
-                          {paper.department.name}
-                        </span>
-                      )}
-
-                      {paper.subject?.name && (
-                        <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">
-                          {paper.subject.name}
-                        </span>
-                      )}
-
-                      {paper.semester && (
-                        <span className="rounded-full bg-green-50 px-3 py-1 font-medium text-green-700">
-                          Semester {paper.semester}
-                        </span>
-                      )}
-
-                      {paper.year && (
-                        <span className="rounded-full bg-purple-50 px-3 py-1 font-medium text-purple-700">
-                          {paper.year}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
-                  >
-                    View Paper
-                  </button>
-                </div>
-              </div>
+                paper={paper}
+                onPreview={handlePreview}
+                onDownload={handleDownload}
+              />
             ))}
           </section>
 
@@ -310,8 +301,8 @@ function SearchPapersPage() {
           </h3>
 
           <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-            Try changing your search keyword or filters to
-            find more question papers.
+            Try changing your search keyword or filters to find
+            more question papers.
           </p>
 
           {(keyword || hasFilters) && (
@@ -325,6 +316,12 @@ function SearchPapersPage() {
           )}
         </section>
       )}
+
+      {/* PDF Preview Modal */}
+      <PdfPreviewModal
+        paper={selectedPaper}
+        onClose={handleClosePreview}
+      />
     </div>
   );
 }
