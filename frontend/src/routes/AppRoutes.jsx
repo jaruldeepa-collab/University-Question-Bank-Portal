@@ -5,6 +5,7 @@ import HomePage from "../pages/HomePage";
 import SearchPapersPage from "../pages/SearchPapersPage";
 import BookmarksPage from "../pages/BookmarksPage";
 import DownloadHistoryPage from "../pages/DownloadHistoryPage";
+import ProfilePage from "../pages/ProfilePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -50,6 +51,10 @@ function AppRoutes() {
     path="/downloads"
     element={<DownloadHistoryPage />}
   />
+  <Route
+  path="/profile"
+  element={<ProfilePage />}
+/>
 </Route>
         </Route>
 

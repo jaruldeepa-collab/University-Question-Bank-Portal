@@ -5,6 +5,7 @@ const {
   loginUser,
   logoutUser,
   getMe,
+  updateProfile,
   forgotPassword,
   resetPassword,
   adminRoute,
@@ -27,6 +28,7 @@ router.put("/reset-password/:token", resetPassword);
 
 // Current User
 router.get("/me", protect, getMe);
+router.put("/profile", protect, updateProfile);
 
 // Role-Based Routes
 router.get("/admin", protect, authorize("admin"), adminRoute);

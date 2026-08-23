@@ -11,10 +11,10 @@ function Sidebar({ isOpen, onClose }) {
       icon: "⌂",
     },
     {
-      name: "Question Papers",
-      path: "/papers",
-      icon: "📄",
-    },
+  name: "Question Papers",
+  path: "/search",
+  icon: "📄",
+},
     {
       name: "Bookmarks",
       path: "/bookmarks",
