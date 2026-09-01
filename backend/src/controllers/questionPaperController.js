@@ -319,6 +319,30 @@ exports.updateQuestionPaper = async (
       updateData.examType = examType;
     }
 
+    // Handle Optional PDF File Update
+    if (req.file) {
+      // Upload new PDF to Cloudinary
+      const uploadResult = await compressAndUploadPdf(
+        req.file.buffer,
+        req.file.originalname
+      );
+
+      // Delete old PDF from Cloudinary if existing
+      if (paper.publicId) {
+        try {
+          await cloudinary.uploader.destroy(paper.publicId, {
+            resource_type: "raw",
+          });
+        } catch (cloudErr) {
+          console.warn("Cloudinary old file cleanup warning:", cloudErr.message);
+        }
+      }
+
+      updateData.pdfUrl =
+        uploadResult.secure_url || uploadResult.url || "";
+      updateData.publicId = uploadResult.public_id || "";
+    }
+
     const updatedPaper =
       await QuestionPaper.findByIdAndUpdate(
         req.params.id,

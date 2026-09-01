@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import api from "../services/api";
 import PdfPreviewModal from "../components/PDFPreviewModal";
+import EditPaperModal from "../components/EditPaperModal";
 
 function FacultyDashboardPage() {
   const { user } = useSelector((state) => state.auth);
@@ -19,8 +20,9 @@ function FacultyDashboardPage() {
   const [selectedExamType, setSelectedExamType] = useState("all");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
 
-  // Preview & Delete State
+  // Preview, Edit & Delete State
   const [previewPaper, setPreviewPaper] = useState(null);
+  const [editPaperTarget, setEditPaperTarget] = useState(null);
   const [deletePaperTarget, setDeletePaperTarget] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -105,6 +107,15 @@ function FacultyDashboardPage() {
       return matchesSearch && matchesExam && matchesDept;
     });
   }, [uploads, searchQuery, selectedExamType, selectedDepartment]);
+
+  // Handle Edit Paper Success
+  const handleEditSuccess = (updatedPaper) => {
+    setUploads((prev) =>
+      prev.map((item) => (item._id === updatedPaper._id ? updatedPaper : item))
+    );
+    setSuccessMessage(`"${updatedPaper.title}" updated successfully.`);
+    setTimeout(() => setSuccessMessage(""), 4000);
+  };
 
   // Handle Delete Paper
   const handleDeletePaper = async () => {
@@ -433,6 +444,14 @@ function FacultyDashboardPage() {
                         </button>
                       )}
 
+                      {/* Edit Paper */}
+                      <button
+                        onClick={() => setEditPaperTarget(paper)}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                      >
+                        ✏️ Edit
+                      </button>
+
                       {/* Download PDF */}
                       {paper.pdfUrl && (
                         <a
@@ -467,6 +486,15 @@ function FacultyDashboardPage() {
         <PdfPreviewModal
           paper={previewPaper}
           onClose={() => setPreviewPaper(null)}
+        />
+      )}
+
+      {/* Edit Paper Modal */}
+      {editPaperTarget && (
+        <EditPaperModal
+          paper={editPaperTarget}
+          onClose={() => setEditPaperTarget(null)}
+          onSuccess={handleEditSuccess}
         />
       )}
 

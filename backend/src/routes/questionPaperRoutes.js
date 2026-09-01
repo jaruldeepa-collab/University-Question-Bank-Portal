@@ -52,6 +52,7 @@ router.put(
   validateObjectId,
   protect,
   authorize("faculty", "admin"),
+  upload.single("pdf"),
   updateQuestionPaper
 );
 

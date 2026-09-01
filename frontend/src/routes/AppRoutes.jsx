@@ -10,6 +10,7 @@ import ProfilePage from "../pages/ProfilePage";
 
 import FacultyDashboardPage from "../pages/FacultyDashboardPage";
 import UploadPaperPage from "../pages/UploadPaperPage";
+import MyUploadsPage from "../pages/MyUploadsPage";
 
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -91,7 +92,7 @@ function AppRoutes() {
             {/* My Uploads */}
             <Route
               path="/faculty/uploads"
-              element={<FacultyDashboardPage />}
+              element={<MyUploadsPage />}
             />
 
           </Route>
