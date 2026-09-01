@@ -1,23 +1,18 @@
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const cloudinary = require("../config/cloudinary");
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => {
-    const cleanFileName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, "_");
-    return {
-      folder: "question-papers",
-      resource_type: "auto",
-      public_id: `${Date.now()}_${cleanFileName}`,
-    };
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
+  console.log("FILE FIELD NAME:", file.fieldname);
+  console.log("FILE NAME:", file.originalname);
+  console.log("FILE TYPE:", file.mimetype);
+
   if (
-    file.mimetype === "application/pdf" ||
-    file.originalname.toLowerCase().endsWith(".pdf")
+    file.fieldname === "pdf" &&
+    (
+      file.mimetype === "application/pdf" ||
+      file.originalname.toLowerCase().endsWith(".pdf")
+    )
   ) {
     cb(null, true);
   } else {
@@ -27,9 +22,12 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage,
+
   fileFilter,
+
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10 MB
+    // 50 MB
+    fileSize: 50 * 1024 * 1024,
   },
 });
 

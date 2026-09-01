@@ -14,33 +14,35 @@ const questionPaperSchema = new mongoose.Schema(
       required: [true, "Department is required"],
     },
 
-    subject: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Subject",
-      required: [true, "Subject is required"],
+    yearOfStudy: {
+      type: String,
+      enum: ["1st Year", "2nd Year", "3rd Year"],
+      required: [true, "Year of study is required"],
     },
 
     semester: {
       type: Number,
       required: [true, "Semester is required"],
       min: 1,
-      max: 8,
+      max: 6,
     },
 
     year: {
       type: Number,
       required: [true, "Year is required"],
+      min: 2021,
+      max: 2025,
     },
 
-    regulation: {
+    month: {
       type: String,
-      required: [true, "Regulation is required"],
-      trim: true,
+      enum: ["April", "November"],
+      required: [true, "Month is required"],
     },
 
     examType: {
       type: String,
-      enum: ["CIA 1", "CIA 2", "Model", "Semester"],
+      enum: ["Semester", "Internal", "Model"],
       required: [true, "Exam type is required"],
     },
 
@@ -75,4 +77,7 @@ const questionPaperSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("QuestionPaper", questionPaperSchema);
+module.exports = mongoose.model(
+  "QuestionPaper",
+  questionPaperSchema
+);

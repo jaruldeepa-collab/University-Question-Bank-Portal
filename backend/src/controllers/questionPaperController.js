@@ -1,22 +1,25 @@
 const QuestionPaper = require("../models/QuestionPaper");
 const Department = require("../models/Department");
-const Subject = require("../models/Subject");
 const mongoose = require("mongoose");
 const cloudinary = require("../config/cloudinary");
+const { compressAndUploadPdf } = require("../utils/cloudinaryUpload");
 
+// ==========================================
 // Upload Question Paper
+// ==========================================
 exports.uploadQuestionPaper = async (req, res, next) => {
   try {
     let {
       title,
       department,
-      subject,
+      yearOfStudy,
       semester,
       year,
-      regulation,
+      month,
       examType,
     } = req.body;
 
+    // Check PDF
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -24,79 +27,180 @@ exports.uploadQuestionPaper = async (req, res, next) => {
       });
     }
 
-    // Ensure valid Department ObjectId
-    if (!mongoose.Types.ObjectId.isValid(department)) {
-      let deptDoc = await Department.findOne({
-        $or: [{ code: department }, { name: department }],
+    // Validate required fields
+    if (
+      !title ||
+      !department ||
+      !yearOfStudy ||
+      !semester ||
+      !year ||
+      !month ||
+      !examType
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required fields",
       });
-      if (!deptDoc) {
-        deptDoc = await Department.create({
-          name: department || "General Engineering",
-          code: (department || "GEN").toUpperCase().slice(0, 5),
-        });
-      }
-      department = deptDoc._id;
     }
 
-    // Ensure valid Subject ObjectId
-    if (!mongoose.Types.ObjectId.isValid(subject)) {
-      let subDoc = await Subject.findOne({
-        $or: [{ code: subject }, { name: subject }],
-      });
-      if (!subDoc) {
-        subDoc = await Subject.create({
-          name: subject || "General Subject",
-          code: (subject || "SUB101").toUpperCase().slice(0, 6),
-          department,
-          semester: Number(semester) || 1,
-        });
+    // ==========================================
+    // Find or Auto-Create Department
+    // ==========================================
+    const findOrCreateDepartment = async (deptInput) => {
+      if (!deptInput) return null;
+      const trimmed = String(deptInput).trim();
+
+      if (mongoose.Types.ObjectId.isValid(trimmed)) {
+        const docById = await Department.findById(trimmed);
+        if (docById) return docById._id;
       }
-      subject = subDoc._id;
+
+      const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      let docByName = await Department.findOne({
+        name: { $regex: new RegExp(`^${escapeRegex(trimmed)}$`, "i") },
+      });
+      if (docByName) return docByName._id;
+
+      let docByCode = await Department.findOne({
+        code: { $regex: new RegExp(`^${escapeRegex(trimmed)}$`, "i") },
+      });
+      if (docByCode) return docByCode._id;
+
+      // Auto-create department if it doesn't exist in DB
+      const cleanWords = trimmed.split(/\s+/).filter(Boolean);
+      let generatedCode = cleanWords
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "");
+      
+      if (!generatedCode) generatedCode = "DEPT";
+      generatedCode = `${generatedCode.slice(0, 8)}_${Math.floor(100 + Math.random() * 900)}`;
+
+      const newDept = await Department.create({
+        name: trimmed,
+        code: generatedCode,
+        description: `${trimmed} Department`,
+      });
+
+      return newDept._id;
+    };
+
+    const departmentId = await findOrCreateDepartment(department);
+
+    if (!departmentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid department specified",
+      });
     }
 
+    // ==========================================
+    // Compress (if > 10MB) & Upload to Cloudinary
+    // ==========================================
+    const uploadResult = await compressAndUploadPdf(
+      req.file.buffer,
+      req.file.originalname
+    );
+
+    // ==========================================
+    // Create Question Paper
+    // ==========================================
     const questionPaper = await QuestionPaper.create({
-      title,
-      department,
-      subject,
+      title: title.trim(),
+
+      department: departmentId,
+
+      yearOfStudy,
+
       semester: Number(semester),
+
       year: Number(year),
-      regulation,
+
+      month,
+
       examType,
-      pdfUrl: req.file.path || req.file.secure_url,
-      publicId: req.file.filename || req.file.public_id,
+
+      pdfUrl:
+        uploadResult.secure_url ||
+        uploadResult.url ||
+        "",
+
+      publicId:
+        uploadResult.public_id ||
+        "",
+
       uploadedBy: req.user._id,
     });
 
-    const populatedPaper = await QuestionPaper.findById(questionPaper._id)
-      .populate("department", "name code")
-      .populate("subject", "name code")
-      .populate("uploadedBy", "name email");
+    // ==========================================
+    // Populate Response
+    // ==========================================
+    const populatedPaper =
+      await QuestionPaper.findById(
+        questionPaper._id
+      )
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        );
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Question Paper uploaded successfully",
+      message:
+        "Question Paper uploaded successfully",
       questionPaper: populatedPaper,
     });
   } catch (error) {
-    console.error("Upload Question Paper Error:", error);
-    res.status(400).json({
+    console.error(
+      "Upload Question Paper Error:",
+      error
+    );
+
+    let userMessage = error.message || "Failed to upload question paper";
+
+    if (userMessage.includes('missing permissions (actions=["create"])')) {
+      userMessage = "Cloudinary API Key is missing write/upload permissions. Please verify CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in backend/.env.";
+    } else if (userMessage.includes("File size too large")) {
+      userMessage = "File size exceeds Cloudinary raw upload limit. The file has been compressed, please ensure the file is under 50 MB.";
+    }
+
+    return res.status(400).json({
       success: false,
-      message: error.message || "Failed to upload question paper",
+      message: userMessage,
     });
   }
 };
 
+// ==========================================
 // Get My Uploads
-exports.getMyUploads = async (req, res, next) => {
+// ==========================================
+exports.getMyUploads = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const papers = await QuestionPaper.find({
-      uploadedBy: req.user._id,
-    })
-      .populate("department", "name code")
-      .populate("subject", "name code")
-      .sort({ createdAt: -1 });
+    const papers =
+      await QuestionPaper.find({
+        uploadedBy: req.user._id,
+      })
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        )
+        .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: papers.length,
       papers,
@@ -106,10 +210,19 @@ exports.getMyUploads = async (req, res, next) => {
   }
 };
 
+// ==========================================
 // Update Question Paper
-exports.updateQuestionPaper = async (req, res, next) => {
+// ==========================================
+exports.updateQuestionPaper = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const paper = await QuestionPaper.findById(req.params.id);
+    const paper =
+      await QuestionPaper.findById(
+        req.params.id
+      );
 
     if (!paper) {
       return res.status(404).json({
@@ -118,8 +231,10 @@ exports.updateQuestionPaper = async (req, res, next) => {
       });
     }
 
+    // Authorization
     if (
-      paper.uploadedBy.toString() !== req.user._id.toString() &&
+      paper.uploadedBy.toString() !==
+        req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
       return res.status(403).json({
@@ -128,20 +243,104 @@ exports.updateQuestionPaper = async (req, res, next) => {
       });
     }
 
-    const updatedPaper = await QuestionPaper.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    )
-      .populate("department", "name code")
-      .populate("subject", "name code");
+    const {
+      title,
+      department,
+      yearOfStudy,
+      semester,
+      year,
+      month,
+      examType,
+    } = req.body;
 
-    res.status(200).json({
+    const updateData = {};
+
+    if (title !== undefined) {
+      updateData.title = title.trim();
+    }
+
+    if (department !== undefined) {
+      const escapeRegex = (str) => String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const trimmed = String(department).trim();
+
+      let departmentDoc;
+      if (mongoose.Types.ObjectId.isValid(trimmed)) {
+        departmentDoc = await Department.findById(trimmed);
+      }
+      if (!departmentDoc) {
+        departmentDoc = await Department.findOne({
+          name: { $regex: new RegExp(`^${escapeRegex(trimmed)}$`, "i") },
+        });
+      }
+      if (!departmentDoc) {
+        departmentDoc = await Department.findOne({
+          code: { $regex: new RegExp(`^${escapeRegex(trimmed)}$`, "i") },
+        });
+      }
+      if (!departmentDoc) {
+        const cleanWords = trimmed.split(/\s+/).filter(Boolean);
+        let generatedCode = cleanWords
+          .map((word) => word[0])
+          .join("")
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "");
+        if (!generatedCode) generatedCode = "DEPT";
+        generatedCode = `${generatedCode.slice(0, 8)}_${Math.floor(100 + Math.random() * 900)}`;
+
+        departmentDoc = await Department.create({
+          name: trimmed,
+          code: generatedCode,
+          description: `${trimmed} Department`,
+        });
+      }
+
+      updateData.department = departmentDoc._id;
+    }
+
+    if (yearOfStudy !== undefined) {
+      updateData.yearOfStudy =
+        yearOfStudy;
+    }
+
+    if (semester !== undefined) {
+      updateData.semester =
+        Number(semester);
+    }
+
+    if (year !== undefined) {
+      updateData.year = Number(year);
+    }
+
+    if (month !== undefined) {
+      updateData.month = month;
+    }
+
+    if (examType !== undefined) {
+      updateData.examType = examType;
+    }
+
+    const updatedPaper =
+      await QuestionPaper.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      )
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        );
+
+    return res.status(200).json({
       success: true,
-      message: "Question paper updated successfully",
+      message:
+        "Question paper updated successfully",
       questionPaper: updatedPaper,
     });
   } catch (error) {
@@ -149,29 +348,49 @@ exports.updateQuestionPaper = async (req, res, next) => {
   }
 };
 
-// Get All Question Papers with Pagination & Sorting
-exports.getQuestionPapers = async (req, res, next) => {
+// ==========================================
+// Get All Question Papers
+// ==========================================
+exports.getQuestionPapers = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const sort = req.query.sort || "-createdAt";
+    const page =
+      Number(req.query.page) || 1;
+
+    const limit =
+      Number(req.query.limit) || 10;
+
+    const sort =
+      req.query.sort || "-createdAt";
 
     const skip = (page - 1) * limit;
 
-    const total = await QuestionPaper.countDocuments();
+    const total =
+      await QuestionPaper.countDocuments();
 
-    const papers = await QuestionPaper.find()
-      .populate("department", "name code")
-      .populate("subject", "name code")
-      .populate("uploadedBy", "name email")
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
+    const papers =
+      await QuestionPaper.find()
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        )
+        .sort(sort)
+        .skip(skip)
+        .limit(limit);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       page,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(
+        total / limit
+      ),
       totalResults: total,
       count: papers.length,
       papers,
@@ -181,13 +400,27 @@ exports.getQuestionPapers = async (req, res, next) => {
   }
 };
 
+// ==========================================
 // Get Single Question Paper
-exports.getQuestionPaperById = async (req, res, next) => {
+// ==========================================
+exports.getQuestionPaperById = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const paper = await QuestionPaper.findById(req.params.id)
-      .populate("department", "name code")
-      .populate("subject", "name code")
-      .populate("uploadedBy", "name email");
+    const paper =
+      await QuestionPaper.findById(
+        req.params.id
+      )
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        );
 
     if (!paper) {
       return res.status(404).json({
@@ -196,7 +429,7 @@ exports.getQuestionPaperById = async (req, res, next) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       paper,
     });
@@ -205,10 +438,19 @@ exports.getQuestionPaperById = async (req, res, next) => {
   }
 };
 
+// ==========================================
 // Delete Question Paper
-exports.deleteQuestionPaper = async (req, res, next) => {
+// ==========================================
+exports.deleteQuestionPaper = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const paper = await QuestionPaper.findById(req.params.id);
+    const paper =
+      await QuestionPaper.findById(
+        req.params.id
+      );
 
     if (!paper) {
       return res.status(404).json({
@@ -217,8 +459,10 @@ exports.deleteQuestionPaper = async (req, res, next) => {
       });
     }
 
+    // Authorization
     if (
-      paper.uploadedBy.toString() !== req.user._id.toString() &&
+      paper.uploadedBy.toString() !==
+        req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
       return res.status(403).json({
@@ -227,30 +471,43 @@ exports.deleteQuestionPaper = async (req, res, next) => {
       });
     }
 
+    // Delete PDF from Cloudinary
     if (paper.publicId) {
       try {
-        await cloudinary.uploader.destroy(paper.publicId, {
-          resource_type: "raw",
-        });
+        await cloudinary.uploader.destroy(
+          paper.publicId,
+          {
+            resource_type: "raw",
+          }
+        );
       } catch (cloudErr) {
-        console.warn("Cloudinary deletion warning:", cloudErr.message);
+        console.warn(
+          "Cloudinary deletion warning:",
+          cloudErr.message
+        );
       }
     }
 
     await paper.deleteOne();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Question paper deleted successfully",
+      message:
+        "Question paper deleted successfully",
     });
   } catch (error) {
     next(error);
   }
 };
-// @desc    Search Question Papers
-// @route   GET /api/question-papers/search
-// @access  Public
-exports.searchQuestionPapers = async (req, res, next) => {
+
+// ==========================================
+// Search Question Papers
+// ==========================================
+exports.searchQuestionPapers = async (
+  req,
+  res,
+  next
+) => {
   try {
     const { keyword } = req.query;
 
@@ -258,66 +515,116 @@ exports.searchQuestionPapers = async (req, res, next) => {
 
     if (keyword) {
       query = {
-        $or: [
-          { title: { $regex: keyword, $options: "i" } },
-        ],
+        title: {
+          $regex: keyword,
+          $options: "i",
+        },
       };
     }
 
-    const papers = await QuestionPaper.find(query)
-      .populate({
-        path: "subject",
-        select: "name code",
-      })
-      .populate("department", "name code")
-      .populate("uploadedBy", "name email");
+    const papers =
+      await QuestionPaper.find(query)
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        )
+        .sort({ createdAt: -1 });
 
-    // Filter by subject name or subject code
-    const filteredPapers = papers.filter((paper) => {
-      if (!keyword) return true;
-
-      const subjectName = paper.subject?.name || "";
-      const subjectCode = paper.subject?.code || "";
-
-      return (
-        paper.title.toLowerCase().includes(keyword.toLowerCase()) ||
-        subjectName.toLowerCase().includes(keyword.toLowerCase()) ||
-        subjectCode.toLowerCase().includes(keyword.toLowerCase())
-      );
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      count: filteredPapers.length,
-      papers: filteredPapers,
+      count: papers.length,
+      papers,
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Filter Question Papers
-// @route   GET /api/question-papers/filter
-// @access  Public
-exports.filterQuestionPapers = async (req, res, next) => {
+// ==========================================
+// Filter Question Papers
+// ==========================================
+exports.filterQuestionPapers = async (
+  req,
+  res,
+  next
+) => {
   try {
-    const { department, semester, year, regulation, examType } = req.query;
+    const {
+      department,
+      yearOfStudy,
+      semester,
+      year,
+      month,
+      examType,
+    } = req.query;
 
-    let query = {};
+    const query = {};
 
-    if (department) query.department = department;
-    if (semester) query.semester = Number(semester);
-    if (year) query.year = Number(year);
-    if (regulation) query.regulation = regulation;
-    if (examType) query.examType = examType;
+    // Department
+    if (department) {
+      if (
+        mongoose.Types.ObjectId.isValid(
+          department
+        )
+      ) {
+        query.department = department;
+      } else {
+        const departmentDoc =
+          await Department.findOne({
+            name: department,
+          });
 
-    const papers = await QuestionPaper.find(query)
-      .populate("department", "name code")
-      .populate("subject", "name code")
-      .populate("uploadedBy", "name email")
-      .sort({ createdAt: -1 });
+        if (departmentDoc) {
+          query.department =
+            departmentDoc._id;
+        }
+      }
+    }
 
-    res.status(200).json({
+    // Year of Study
+    if (yearOfStudy) {
+      query.yearOfStudy =
+        yearOfStudy;
+    }
+
+    // Semester
+    if (semester) {
+      query.semester =
+        Number(semester);
+    }
+
+    // Year
+    if (year) {
+      query.year = Number(year);
+    }
+
+    // Month
+    if (month) {
+      query.month = month;
+    }
+
+    // Exam Type
+    if (examType) {
+      query.examType = examType;
+    }
+
+    const papers =
+      await QuestionPaper.find(query)
+        .populate(
+          "department",
+          "name code"
+        )
+        .populate(
+          "uploadedBy",
+          "name email"
+        )
+        .sort({ createdAt: -1 });
+
+    return res.status(200).json({
       success: true,
       count: papers.length,
       papers,

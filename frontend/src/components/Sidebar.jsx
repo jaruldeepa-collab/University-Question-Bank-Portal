@@ -4,33 +4,89 @@ import { useSelector } from "react-redux";
 function Sidebar({ isOpen, onClose }) {
   const { user } = useSelector((state) => state.auth);
 
-  const navItems = [
+  const role = user?.role || "student";
+
+  const studentNavItems = [
     {
       name: "Dashboard",
       path: "/",
       icon: "⌂",
+      end: true,
     },
     {
-  name: "Question Papers",
-  path: "/search",
-  icon: "📄",
-},
+      name: "Question Papers",
+      path: "/search",
+      icon: "📄",
+      end: true,
+    },
     {
       name: "Bookmarks",
       path: "/bookmarks",
       icon: "🔖",
+      end: true,
     },
     {
       name: "Download History",
       path: "/downloads",
       icon: "⬇",
+      end: true,
     },
     {
       name: "Profile",
       path: "/profile",
       icon: "👤",
+      end: true,
     },
   ];
+
+  const facultyNavItems = [
+    {
+      name: "Dashboard",
+      path: "/faculty",
+      icon: "⌂",
+      end: true,
+    },
+    {
+      name: "Upload Paper",
+      path: "/faculty/upload",
+      icon: "📤",
+      end: true,
+    },
+    {
+      name: "My Uploads",
+      path: "/faculty/uploads",
+      icon: "📄",
+      end: true,
+    },
+    {
+      name: "Profile",
+      path: "/profile",
+      icon: "👤",
+      end: true,
+    },
+  ];
+
+  const adminNavItems = [
+    {
+      name: "Dashboard",
+      path: "/admin",
+      icon: "⌂",
+      end: true,
+    },
+    {
+      name: "Profile",
+      path: "/profile",
+      icon: "👤",
+      end: true,
+    },
+  ];
+
+  const navItems =
+    role === "faculty"
+      ? facultyNavItems
+      : role === "admin"
+        ? adminNavItems
+        : studentNavItems;
 
   return (
     <>
@@ -45,10 +101,13 @@ function Sidebar({ isOpen, onClose }) {
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-72 transform border-r
-          border-slate-200 bg-white transition-transform duration-300
-          lg:static lg:z-auto lg:block lg:min-h-[calc(100vh-4rem)]
-          lg:w-64 lg:translate-x-0 lg:transform-none
+          fixed inset-y-0 left-0 z-50 w-72 transform
+          border-r border-slate-200 bg-white
+          transition-transform duration-300
+          lg:static lg:z-auto lg:block
+          lg:min-h-[calc(100vh-4rem)]
+          lg:w-64 lg:translate-x-0
+          lg:transform-none
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
@@ -83,7 +142,7 @@ function Sidebar({ isOpen, onClose }) {
                 </p>
 
                 <p className="truncate text-xs capitalize text-slate-500">
-                  {user?.role || "Student"}
+                  {role}
                 </p>
               </div>
             </div>
@@ -93,8 +152,9 @@ function Sidebar({ isOpen, onClose }) {
           <nav className="space-y-2">
             {navItems.map((item) => (
               <NavLink
-                key={item.path}
+                key={`${item.name}-${item.path}`}
                 to={item.path}
+                end={item.end}
                 onClick={onClose}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition ${
@@ -120,7 +180,7 @@ function Sidebar({ isOpen, onClose }) {
             </p>
 
             <p className="mt-1 text-sm font-semibold capitalize text-slate-700">
-              {user?.role || "Student"}
+              {role}
             </p>
           </div>
         </div>
