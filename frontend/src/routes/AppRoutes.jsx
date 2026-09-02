@@ -17,6 +17,7 @@ import UserManagementPage from "../pages/UserManagementPage";
 import DepartmentManagementPage from "../pages/DepartmentManagementPage";
 import SubjectManagementPage from "../pages/SubjectManagementPage";
 import FacultyApprovalsPage from "../pages/FacultyApprovalsPage";
+import AnalyticsPage from "../pages/AnalyticsPage";
 
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -133,6 +134,12 @@ function AppRoutes() {
             <Route
               path="/admin/faculty-approvals"
               element={<FacultyApprovalsPage />}
+            />
+
+            {/* Analytics & Reports */}
+            <Route
+              path="/admin/analytics"
+              element={<AnalyticsPage />}
             />
 
           </Route>

@@ -98,6 +98,12 @@ function Sidebar({ isOpen, onClose }) {
       end: true,
     },
     {
+      name: "Analytics & Reports",
+      path: "/admin/analytics",
+      icon: "📊",
+      end: true,
+    },
+    {
       name: "Profile",
       path: "/profile",
       icon: "👤",
