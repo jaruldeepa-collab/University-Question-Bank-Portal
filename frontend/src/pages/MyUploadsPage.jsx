@@ -6,6 +6,7 @@ import api from "../services/api";
 import PdfPreviewModal from "../components/PdfPreviewModal";
 import EditPaperModal from "../components/EditPaperModal";
 import UploadStatistics from "../components/UploadStatistics";
+import QuestionPaperCard from "../components/QuestionPaperCard";
 import { useToast } from "../context/ToastContext";
 
 function MyUploadsPage() {
@@ -15,6 +16,9 @@ function MyUploadsPage() {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // View Mode: "grid" | "table"
+  const [viewMode, setViewMode] = useState("grid");
 
   // Tab State: "list" | "stats"
   const [activeTab, setActiveTab] = useState("list");
@@ -233,7 +237,7 @@ function MyUploadsPage() {
       {/* Tab 1: Question Papers List */}
       {activeTab === "list" && (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900 space-y-6">
-          {/* Filters Bar */}
+          {/* Filters Bar & View Mode Switcher */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
@@ -249,7 +253,7 @@ function MyUploadsPage() {
               </span>
             </div>
 
-            {/* Select Dropdowns */}
+            {/* Select Dropdowns & View Switcher */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Department */}
               {uniqueDepartments.length > 0 && (
@@ -279,31 +283,31 @@ function MyUploadsPage() {
                 <option value="Model">Model</option>
               </select>
 
-              {/* Semester */}
-              <select
-                value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              >
-                <option value="all">All Semesters</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                  <option key={s} value={String(s)}>
-                    Semester {s}
-                  </option>
-                ))}
-              </select>
-
-              {/* Sort By */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 outline-none transition focus:border-blue-500 dark:border-blue-900/50 dark:bg-blue-950 dark:text-blue-300"
-              >
-                <option value="newest">Sort: Newest First</option>
-                <option value="oldest">Sort: Oldest First</option>
-                <option value="downloads">Sort: Most Downloaded</option>
-                <option value="title">Sort: Title (A-Z)</option>
-              </select>
+              {/* View Switcher Toggle */}
+              <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition ${
+                    viewMode === "grid"
+                      ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-white"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                  }`}
+                >
+                  田 Cards
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("table")}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition ${
+                    viewMode === "table"
+                      ? "bg-white text-blue-600 shadow dark:bg-slate-700 dark:text-white"
+                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                  }`}
+                >
+                  ☰ List
+                </button>
+              </div>
 
               {/* Refresh */}
               <button
@@ -330,7 +334,7 @@ function MyUploadsPage() {
             <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center dark:border-slate-800 dark:bg-slate-800/40 space-y-3">
               <div className="text-4xl">📄</div>
               <h3 className="text-base font-bold text-slate-800 dark:text-white">
-                No question papers found
+                No uploaded question papers found
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 {searchQuery ||
@@ -349,7 +353,76 @@ function MyUploadsPage() {
                 </Link>
               )}
             </div>
+          ) : viewMode === "grid" ? (
+            /* Grid View Mode */
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
+              {filteredAndSortedPapers.map((paper) => (
+                <div
+                  key={paper._id}
+                  className="relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-white leading-snug">
+                        {paper.title}
+                      </h3>
+
+                      {paper.examType && (
+                        <span className="shrink-0 rounded-lg bg-blue-50 dark:bg-blue-950 px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:text-blue-300">
+                          {paper.examType}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="font-bold text-slate-700 dark:text-slate-200">
+                        {typeof paper.department === "object"
+                          ? paper.department?.name
+                          : paper.department || "General"}
+                      </span>
+                      <span>•</span>
+                      <span>Sem {paper.semester}</span>
+                      <span>•</span>
+                      <span>{paper.yearOfStudy || "N/A"}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1 font-bold text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
+                      <span>⬇</span>
+                      <span>{paper.downloadCount || 0} downloads</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {paper.pdfUrl && (
+                        <button
+                          onClick={() => setPreviewPaper(paper)}
+                          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                        >
+                          👁 Preview
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => setEditPaperTarget(paper)}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-blue-600 transition hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-blue-400"
+                      >
+                        ✏️ Edit
+                      </button>
+
+                      <button
+                        onClick={() => setDeletePaperTarget(paper)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950 dark:text-red-400"
+                      >
+                        🗑 Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* Table/List View Mode */
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredAndSortedPapers.map((paper) => {
                 const deptName =
@@ -427,7 +500,7 @@ function MyUploadsPage() {
                         {/* Delete */}
                         <button
                           onClick={() => setDeletePaperTarget(paper)}
-                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:bg-red-950/60 dark:text-red-400 dark:hover:bg-red-900/50"
+                          className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 font-bold text-red-600 transition hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900/50"
                         >
                           🗑 Delete
                         </button>
