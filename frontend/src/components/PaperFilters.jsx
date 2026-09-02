@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import api from "../services/api";
 
 function PaperFilters({ filters, onFilterChange, onClear }) {
@@ -28,19 +27,18 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
     onFilterChange(name, value);
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900">
       {/* Header */}
       <div className="mb-5">
-        <h2 className="text-lg font-bold text-slate-800">
-          Advanced Filters
+        <h2 className="text-lg font-bold text-slate-800 dark:text-white">
+          Advanced Filters 🔍
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Narrow down question papers using the filters below.
         </p>
       </div>
@@ -51,7 +49,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
         <div>
           <label
             htmlFor="department"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
           >
             Department
           </label>
@@ -62,7 +60,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
             value={filters.department}
             onChange={handleChange}
             disabled={loadingDepartments}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           >
             <option value="">
               {loadingDepartments
@@ -85,7 +83,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
         <div>
           <label
             htmlFor="semester"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
           >
             Semester
           </label>
@@ -95,7 +93,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
             name="semester"
             value={filters.semester}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           >
             <option value="">All Semesters</option>
 
@@ -111,9 +109,9 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
         <div>
           <label
             htmlFor="year"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
           >
-            Year
+            Academic Year
           </label>
 
           <select
@@ -121,7 +119,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
             name="year"
             value={filters.year}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           >
             <option value="">All Years</option>
 
@@ -137,7 +135,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
         <div>
           <label
             htmlFor="regulation"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
           >
             Regulation
           </label>
@@ -147,7 +145,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
             name="regulation"
             value={filters.regulation}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           >
             <option value="">All Regulations</option>
             <option value="2021">2021 Regulation</option>
@@ -161,7 +159,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
         <div>
           <label
             htmlFor="examType"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-200"
           >
             Exam Type
           </label>
@@ -171,7 +169,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
             name="examType"
             value={filters.examType}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           >
             <option value="">All Exam Types</option>
             <option value="Internal">Internal</option>
@@ -187,7 +185,7 @@ function PaperFilters({ filters, onFilterChange, onClear }) {
         <button
           type="button"
           onClick={onClear}
-          className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
           Clear Filters
         </button>

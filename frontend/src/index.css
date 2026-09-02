@@ -24,6 +24,31 @@
   }
 }
 
+/* Universal Input, Select, Textarea Visibility Fix */
+input,
+select,
+textarea {
+  color: #0f172a;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #ffffff !important; /* Pure bright white text */
+  border-color: #334155 !important; /* slate-700 */
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+html.dark option {
+  background-color: #0f172a !important; /* slate-900 */
+  color: #ffffff !important;
+}
+
 /* Chrome/Safari Autofill Input Styling Fix */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -38,7 +63,7 @@ html.dark input:-webkit-autofill,
 html.dark input:-webkit-autofill:hover,
 html.dark input:-webkit-autofill:focus,
 html.dark input:-webkit-autofill:active {
-  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-text-fill-color: #ffffff !important;
   -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important; /* slate-800 */
   transition: background-color 5000s ease-in-out 0s;
 }
