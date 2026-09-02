@@ -74,9 +74,27 @@ function Sidebar({ isOpen, onClose }) {
       end: true,
     },
     {
+      name: "Faculty Approvals",
+      path: "/admin/faculty-approvals",
+      icon: "⏳",
+      end: true,
+    },
+    {
       name: "User Management",
       path: "/admin/users",
       icon: "👥",
+      end: true,
+    },
+    {
+      name: "Departments",
+      path: "/admin/departments",
+      icon: "🏛",
+      end: true,
+    },
+    {
+      name: "Subjects",
+      path: "/admin/subjects",
+      icon: "📘",
       end: true,
     },
     {

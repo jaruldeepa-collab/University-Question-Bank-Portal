@@ -16,9 +16,9 @@ const router = express.Router();
 router.get("/", getSubjects);
 router.get("/:id", getSubjectById);
 
-// Admin Routes
-router.post("/", protect, authorize("admin"), createSubject);
-router.put("/:id", protect, authorize("admin"), updateSubject);
-router.delete("/:id", protect, authorize("admin"), deleteSubject);
+// Admin & Faculty Routes
+router.post("/", protect, authorize("admin", "faculty"), createSubject);
+router.put("/:id", protect, authorize("admin", "faculty"), updateSubject);
+router.delete("/:id", protect, authorize("admin", "faculty"), deleteSubject);
 
 module.exports = router;

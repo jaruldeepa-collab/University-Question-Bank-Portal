@@ -14,6 +14,9 @@ import MyUploadsPage from "../pages/MyUploadsPage";
 
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import UserManagementPage from "../pages/UserManagementPage";
+import DepartmentManagementPage from "../pages/DepartmentManagementPage";
+import SubjectManagementPage from "../pages/SubjectManagementPage";
+import FacultyApprovalsPage from "../pages/FacultyApprovalsPage";
 
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -112,6 +115,24 @@ function AppRoutes() {
             <Route
               path="/admin/users"
               element={<UserManagementPage />}
+            />
+
+            {/* Department Management */}
+            <Route
+              path="/admin/departments"
+              element={<DepartmentManagementPage />}
+            />
+
+            {/* Subject Management */}
+            <Route
+              path="/admin/subjects"
+              element={<SubjectManagementPage />}
+            />
+
+            {/* Faculty Approvals */}
+            <Route
+              path="/admin/faculty-approvals"
+              element={<FacultyApprovalsPage />}
             />
 
           </Route>

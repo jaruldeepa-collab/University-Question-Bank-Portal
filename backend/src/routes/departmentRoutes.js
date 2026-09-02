@@ -14,13 +14,13 @@ const router = express.Router();
 // Public - Get all departments
 router.get("/", getDepartments);
 
-// Admin Only - Create Department
-router.post("/", protect, authorize("admin"), createDepartment);
+// Admin & Faculty - Create Department
+router.post("/", protect, authorize("admin", "faculty"), createDepartment);
 
-// Admin Only - Update Department
-router.put("/:id", protect, authorize("admin"), updateDepartment);
+// Admin & Faculty - Update Department
+router.put("/:id", protect, authorize("admin", "faculty"), updateDepartment);
 
-// Admin Only - Delete Department
-router.delete("/:id", protect, authorize("admin"), deleteDepartment);
+// Admin & Faculty - Delete Department
+router.delete("/:id", protect, authorize("admin", "faculty"), deleteDepartment);
 
 module.exports = router;
