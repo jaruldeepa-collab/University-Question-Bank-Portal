@@ -6,14 +6,15 @@ import api from "../services/api";
 import PdfPreviewModal from "../components/PdfPreviewModal";
 import EditPaperModal from "../components/EditPaperModal";
 import UploadStatistics from "../components/UploadStatistics";
+import { useToast } from "../context/ToastContext";
 
 function MyUploadsPage() {
   const { user } = useSelector((state) => state.auth);
+  const toast = useToast();
 
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Tab State: "list" | "stats"
   const [activeTab, setActiveTab] = useState("list");
@@ -128,8 +129,7 @@ function MyUploadsPage() {
     setUploads((prev) =>
       prev.map((item) => (item._id === updatedPaper._id ? updatedPaper : item))
     );
-    setSuccessMessage(`"${updatedPaper.title}" updated successfully.`);
-    setTimeout(() => setSuccessMessage(""), 4000);
+    toast.success(`"${updatedPaper.title}" updated successfully.`);
   };
 
   // Handle Delete Confirmation
@@ -148,16 +148,14 @@ function MyUploadsPage() {
         setUploads((prev) =>
           prev.filter((item) => item._id !== deletePaperTarget._id)
         );
-        setSuccessMessage(
-          `"${deletePaperTarget.title}" deleted successfully.`
-        );
-        setTimeout(() => setSuccessMessage(""), 4000);
+        toast.success(`"${deletePaperTarget.title}" deleted successfully.`);
       }
     } catch (err) {
       console.error("Delete paper error:", err);
-      setError(
-        err.response?.data?.message || "Failed to delete question paper."
-      );
+      const errMsg =
+        err.response?.data?.message || "Failed to delete question paper.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setDeletingId(null);
       setDeletePaperTarget(null);
@@ -169,48 +167,36 @@ function MyUploadsPage() {
       {/* Header */}
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
             Faculty Portal
           </p>
 
-          <h1 className="mt-1 text-3xl font-bold text-slate-800 sm:text-4xl">
+          <h1 className="mt-1 text-3xl font-bold text-slate-800 dark:text-white sm:text-4xl">
             My Uploaded Papers 📄
           </h1>
 
-          <p className="mt-2 max-w-2xl text-slate-600">
-            View, edit, search, filter, and track statistics for all your published university question papers.
+          <p className="mt-1.5 max-w-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            View, edit, search, filter, and delete your published question papers anytime.
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
           <Link
             to="/faculty/upload"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-700"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-700"
           >
-            <span className="text-lg">+</span> Upload Paper
+            <span className="text-base">+</span> Upload New Paper
           </Link>
         </div>
       </section>
 
-      {/* Notifications */}
-      {successMessage && (
-        <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-          <span>✅ {successMessage}</span>
-          <button
-            onClick={() => setSuccessMessage("")}
-            className="text-green-600 hover:text-green-800"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
+      {/* Error Alert */}
       {error && (
-        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/60 dark:text-red-300">
           <span>⚠️ {error}</span>
           <button
             onClick={() => setError("")}
-            className="text-red-600 hover:text-red-800"
+            className="text-red-500 hover:text-red-700"
           >
             ✕
           </button>
@@ -218,13 +204,13 @@ function MyUploadsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex border-b border-slate-200 dark:border-slate-800">
         <button
           onClick={() => setActiveTab("list")}
-          className={`flex items-center gap-2 border-b-2 px-6 py-3 text-sm font-semibold transition ${
+          className={`flex items-center gap-2 border-b-2 px-6 py-3 text-xs font-bold transition ${
             activeTab === "list"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-slate-500 hover:text-slate-700"
+              ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+              : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           }`}
         >
           <span>📄</span>
@@ -233,10 +219,10 @@ function MyUploadsPage() {
 
         <button
           onClick={() => setActiveTab("stats")}
-          className={`flex items-center gap-2 border-b-2 px-6 py-3 text-sm font-semibold transition ${
+          className={`flex items-center gap-2 border-b-2 px-6 py-3 text-xs font-bold transition ${
             activeTab === "stats"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-slate-500 hover:text-slate-700"
+              ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+              : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           }`}
         >
           <span>📊</span>
@@ -246,9 +232,9 @@ function MyUploadsPage() {
 
       {/* Tab 1: Question Papers List */}
       {activeTab === "list" && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900 space-y-6">
           {/* Filters Bar */}
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
               <input
@@ -256,9 +242,9 @@ function MyUploadsPage() {
                 placeholder="Search paper title or department..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
               />
-              <span className="absolute left-3.5 top-3 text-sm text-slate-400">
+              <span className="absolute left-3.5 top-3 text-xs text-slate-400 dark:text-slate-500">
                 🔍
               </span>
             </div>
@@ -270,7 +256,7 @@ function MyUploadsPage() {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 >
                   <option value="all">All Departments</option>
                   {uniqueDepartments.map((dept) => (
@@ -285,7 +271,7 @@ function MyUploadsPage() {
               <select
                 value={selectedExamType}
                 onChange={(e) => setSelectedExamType(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white"
+                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
                 <option value="all">All Exam Types</option>
                 <option value="Semester">Semester</option>
@@ -297,10 +283,10 @@ function MyUploadsPage() {
               <select
                 value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white"
+                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
                 <option value="all">All Semesters</option>
-                {[1, 2, 3, 4, 5, 6].map((s) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
                   <option key={s} value={String(s)}>
                     Semester {s}
                   </option>
@@ -311,7 +297,7 @@ function MyUploadsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 outline-none transition focus:border-blue-500"
+                className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 outline-none transition focus:border-blue-500 dark:border-blue-900/50 dark:bg-blue-950 dark:text-blue-300"
               >
                 <option value="newest">Sort: Newest First</option>
                 <option value="oldest">Sort: Oldest First</option>
@@ -323,7 +309,7 @@ function MyUploadsPage() {
               <button
                 onClick={fetchMyUploads}
                 title="Refresh Uploads List"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 🔄
               </button>
@@ -336,17 +322,17 @@ function MyUploadsPage() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-20 animate-pulse rounded-xl bg-slate-100"
+                  className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800"
                 />
               ))}
             </div>
           ) : filteredAndSortedPapers.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center space-y-3">
+            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center dark:border-slate-800 dark:bg-slate-800/40 space-y-3">
               <div className="text-4xl">📄</div>
-              <h3 className="text-base font-semibold text-slate-800">
+              <h3 className="text-base font-bold text-slate-800 dark:text-white">
                 No question papers found
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 {searchQuery ||
                 selectedExamType !== "all" ||
                 selectedDepartment !== "all" ||
@@ -357,14 +343,14 @@ function MyUploadsPage() {
               {!uploads.length && (
                 <Link
                   to="/faculty/upload"
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700"
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-blue-700"
                 >
-                  + Upload Paper
+                  + Upload First Paper
                 </Link>
               )}
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredAndSortedPapers.map((paper) => {
                 const deptName =
                   typeof paper.department === "object"
@@ -374,21 +360,21 @@ function MyUploadsPage() {
                 return (
                   <div
                     key={paper._id}
-                    className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between px-2 rounded-xl transition hover:bg-slate-50/60"
+                    className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between px-3 rounded-xl transition hover:bg-slate-50/80 dark:hover:bg-slate-800/60"
                   >
                     {/* Details */}
                     <div className="flex min-w-0 items-start gap-3.5">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-slate-800 text-xl text-blue-600 dark:text-blue-400">
                         📄
                       </div>
 
                       <div className="min-w-0">
-                        <h3 className="truncate text-base font-bold text-slate-800">
+                        <h3 className="truncate text-base font-bold text-slate-800 dark:text-white">
                           {paper.title}
                         </h3>
 
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                          <span className="font-semibold text-slate-700">
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="font-bold text-slate-700 dark:text-slate-200">
                             {deptName}
                           </span>
                           <span>•</span>
@@ -406,25 +392,25 @@ function MyUploadsPage() {
                     {/* Controls & Badges */}
                     <div className="flex flex-wrap shrink-0 items-center justify-between sm:justify-end gap-3 text-xs">
                       {/* Download Count */}
-                      <div className="flex items-center gap-1 font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">
+                      <div className="flex items-center gap-1 font-bold text-slate-700 bg-slate-100 dark:bg-slate-800 dark:text-slate-200 px-3 py-1.5 rounded-lg">
                         <span>⬇</span>
                         <span>{paper.downloadCount || 0}</span>
                       </div>
 
                       {/* Exam Type Badge */}
                       {paper.examType && (
-                        <span className="rounded-lg bg-blue-50 px-3 py-1.5 font-semibold text-blue-700">
+                        <span className="rounded-lg bg-blue-50 dark:bg-blue-950 px-3 py-1.5 font-bold text-blue-700 dark:text-blue-300">
                           {paper.examType}
                         </span>
                       )}
 
-                      {/* Buttons */}
+                      {/* Action Buttons */}
                       <div className="flex items-center gap-2">
                         {/* Preview */}
                         {paper.pdfUrl && (
                           <button
                             onClick={() => setPreviewPaper(paper)}
-                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-slate-700 transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                           >
                             👁 Preview
                           </button>
@@ -433,7 +419,7 @@ function MyUploadsPage() {
                         {/* Edit */}
                         <button
                           onClick={() => setEditPaperTarget(paper)}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-blue-600 transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-slate-700"
                         >
                           ✏️ Edit
                         </button>
@@ -441,7 +427,7 @@ function MyUploadsPage() {
                         {/* Delete */}
                         <button
                           onClick={() => setDeletePaperTarget(paper)}
-                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 font-medium text-red-600 transition hover:bg-red-50"
+                          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:bg-red-950/60 dark:text-red-400 dark:hover:bg-red-900/50"
                         >
                           🗑 Delete
                         </button>
@@ -453,9 +439,9 @@ function MyUploadsPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             download
-                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-medium text-emerald-600 transition hover:border-emerald-300 hover:bg-emerald-50"
+                            className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950 dark:text-emerald-300"
                           >
-                            ⬇ Download
+                            ⬇ PDF
                           </a>
                         )}
                       </div>
@@ -493,24 +479,24 @@ function MyUploadsPage() {
       {/* Delete Confirmation Modal */}
       {deletePaperTarget && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-red-600">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
               <span className="text-2xl">⚠️</span>
-              <h3 className="text-lg font-bold text-slate-800">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                 Delete Question Paper
               </h3>
             </div>
 
-            <p className="text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               Are you sure you want to delete{" "}
-              <strong className="text-slate-800">
+              <strong className="text-slate-900 dark:text-white">
                 "{deletePaperTarget.title}"
               </strong>
-              ? This action cannot be undone.
+              ? This action will permanently remove the paper from the portal and Cloudinary storage.
             </p>
 
             <div className="flex justify-end gap-3 pt-2">
@@ -518,7 +504,7 @@ function MyUploadsPage() {
                 type="button"
                 onClick={() => setDeletePaperTarget(null)}
                 disabled={Boolean(deletingId)}
-                className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 Cancel
               </button>
@@ -527,7 +513,7 @@ function MyUploadsPage() {
                 type="button"
                 onClick={handleDeletePaper}
                 disabled={Boolean(deletingId)}
-                className="rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+                className="rounded-xl bg-red-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-red-500/20 transition hover:bg-red-700 disabled:opacity-50"
               >
                 {deletingId ? "Deleting..." : "Confirm Delete"}
               </button>

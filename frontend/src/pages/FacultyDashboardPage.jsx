@@ -5,15 +5,16 @@ import { Link, useLocation } from "react-router-dom";
 import api from "../services/api";
 import PdfPreviewModal from "../components/PdfPreviewModal";
 import EditPaperModal from "../components/EditPaperModal";
+import { useToast } from "../context/ToastContext";
 
 function FacultyDashboardPage() {
   const { user } = useSelector((state) => state.auth);
   const location = useLocation();
+  const toast = useToast();
 
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,8 +114,7 @@ function FacultyDashboardPage() {
     setUploads((prev) =>
       prev.map((item) => (item._id === updatedPaper._id ? updatedPaper : item))
     );
-    setSuccessMessage(`"${updatedPaper.title}" updated successfully.`);
-    setTimeout(() => setSuccessMessage(""), 4000);
+    toast.success(`"${updatedPaper.title}" updated successfully.`);
   };
 
   // Handle Delete Paper
@@ -133,16 +133,14 @@ function FacultyDashboardPage() {
         setUploads((prev) =>
           prev.filter((item) => item._id !== deletePaperTarget._id)
         );
-        setSuccessMessage(
-          `"${deletePaperTarget.title}" deleted successfully.`
-        );
-        setTimeout(() => setSuccessMessage(""), 4000);
+        toast.success(`"${deletePaperTarget.title}" deleted successfully.`);
       }
     } catch (err) {
       console.error("Delete paper error:", err);
-      setError(
-        err.response?.data?.message || "Failed to delete question paper."
-      );
+      const errMsg =
+        err.response?.data?.message || "Failed to delete question paper.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setDeletingId(null);
       setDeletePaperTarget(null);
