@@ -23,24 +23,9 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import NotFoundPage from "../pages/NotFoundPage";
 
 import ProtectedRoute from "../components/ProtectedRoute";
-
-function NotFoundPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-red-500">
-          404
-        </h1>
-
-        <p className="mt-3 text-xl text-slate-600">
-          Page Not Found
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function AppRoutes() {
   return (
