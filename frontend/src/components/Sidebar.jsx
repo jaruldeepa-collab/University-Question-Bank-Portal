@@ -74,6 +74,12 @@ function Sidebar({ isOpen, onClose }) {
       end: true,
     },
     {
+      name: "User Management",
+      path: "/admin/users",
+      icon: "👥",
+      end: true,
+    },
+    {
       name: "Profile",
       path: "/profile",
       icon: "👤",

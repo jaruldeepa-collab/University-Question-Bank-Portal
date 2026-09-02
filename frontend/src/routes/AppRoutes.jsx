@@ -12,6 +12,9 @@ import FacultyDashboardPage from "../pages/FacultyDashboardPage";
 import UploadPaperPage from "../pages/UploadPaperPage";
 import MyUploadsPage from "../pages/MyUploadsPage";
 
+import AdminDashboardPage from "../pages/AdminDashboardPage";
+import UserManagementPage from "../pages/UserManagementPage";
+
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -93,6 +96,22 @@ function AppRoutes() {
             <Route
               path="/faculty/uploads"
               element={<MyUploadsPage />}
+            />
+
+            {/* =========================
+                Admin Routes
+            ========================== */}
+
+            {/* Admin Dashboard */}
+            <Route
+              path="/admin"
+              element={<AdminDashboardPage />}
+            />
+
+            {/* User Management */}
+            <Route
+              path="/admin/users"
+              element={<UserManagementPage />}
             />
 
           </Route>

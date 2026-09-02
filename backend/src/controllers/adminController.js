@@ -11,6 +11,10 @@ exports.getDashboardStats = async (req, res, next) => {
     const totalUsers = await User.countDocuments();
     const totalStudents = await User.countDocuments({ role: "student" });
     const totalFaculty = await User.countDocuments({ role: "faculty" });
+    const pendingFaculty = await User.countDocuments({
+      role: "faculty",
+      isApproved: false,
+    });
     const totalDepartments = await Department.countDocuments();
     const totalSubjects = await Subject.countDocuments();
     const totalQuestionPapers = await QuestionPaper.countDocuments();
@@ -23,6 +27,7 @@ exports.getDashboardStats = async (req, res, next) => {
         totalUsers,
         totalStudents,
         totalFaculty,
+        pendingFaculty,
         totalDepartments,
         totalSubjects,
         totalQuestionPapers,
