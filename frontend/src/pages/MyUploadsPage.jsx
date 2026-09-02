@@ -6,7 +6,6 @@ import api from "../services/api";
 import PdfPreviewModal from "../components/PdfPreviewModal";
 import EditPaperModal from "../components/EditPaperModal";
 import UploadStatistics from "../components/UploadStatistics";
-import QuestionPaperCard from "../components/QuestionPaperCard";
 import { useToast } from "../context/ToastContext";
 
 function MyUploadsPage() {
@@ -16,6 +15,9 @@ function MyUploadsPage() {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Scope Filter: "all" (Total Question Papers List) | "my" (My Uploads Only)
+  const [scopeFilter, setScopeFilter] = useState("all");
 
   // View Mode: "grid" | "table"
   const [viewMode, setViewMode] = useState("grid");
@@ -36,28 +38,34 @@ function MyUploadsPage() {
   const [deletePaperTarget, setDeletePaperTarget] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
-  const fetchMyUploads = async () => {
+  const fetchUploads = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/question-papers/my-uploads");
+      // Fetch Total Question Paper List from backend
+      const response = await api.get("/question-papers?limit=100");
 
       if (response.data.success) {
         setUploads(response.data.papers || []);
       }
     } catch (err) {
-      console.error("Fetch My Uploads Error:", err);
-      setError(
-        err.response?.data?.message || "Failed to load your uploads."
-      );
+      console.error("Fetch Uploads Error:", err);
+      try {
+        const fallback = await api.get("/question-papers/my-uploads");
+        if (fallback.data.success) {
+          setUploads(fallback.data.papers || []);
+        }
+      } catch (fErr) {
+        setError(fErr.response?.data?.message || "Failed to load question papers.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMyUploads();
+    fetchUploads();
   }, []);
 
   // Compute Unique Departments
@@ -76,6 +84,17 @@ function MyUploadsPage() {
   // Filtered & Sorted Papers
   const filteredAndSortedPapers = useMemo(() => {
     let result = uploads.filter((paper) => {
+      // Scope Filter ("all" vs "my")
+      if (scopeFilter === "my") {
+        const uploaderId =
+          typeof paper.uploadedBy === "object"
+            ? paper.uploadedBy?._id
+            : paper.uploadedBy;
+        if (uploaderId && user?._id && String(uploaderId) !== String(user._id)) {
+          return false;
+        }
+      }
+
       const matchesSearch =
         !searchQuery.trim() ||
         paper.title?.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
@@ -107,7 +126,7 @@ function MyUploadsPage() {
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       }
       if (sortBy === "oldest") {
-        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+        return new Date(a.createdAt || 0) - new Date(a.createdAt || 0);
       }
       if (sortBy === "downloads") {
         return (Number(b.downloadCount) || 0) - (Number(a.downloadCount) || 0);
@@ -121,11 +140,13 @@ function MyUploadsPage() {
     return result;
   }, [
     uploads,
+    scopeFilter,
     searchQuery,
     selectedExamType,
     selectedDepartment,
     selectedSemester,
     sortBy,
+    user,
   ]);
 
   // Handle Edit Success Callback
@@ -172,15 +193,15 @@ function MyUploadsPage() {
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-            Faculty Portal
+            Faculty & Question Paper Hub
           </p>
 
           <h1 className="mt-1 text-3xl font-bold text-slate-800 dark:text-white sm:text-4xl">
-            My Uploaded Papers 📄
+            Manage Question Papers 📄
           </h1>
 
           <p className="mt-1.5 max-w-2xl text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-            View, edit, search, filter, and delete your published question papers anytime.
+            View total portal question papers, filter materials, preview PDFs, edit details, and delete papers.
           </p>
         </div>
 
@@ -218,7 +239,7 @@ function MyUploadsPage() {
           }`}
         >
           <span>📄</span>
-          <span>Question Papers ({uploads.length})</span>
+          <span>Total Question Papers ({uploads.length})</span>
         </button>
 
         <button
@@ -237,53 +258,36 @@ function MyUploadsPage() {
       {/* Tab 1: Question Papers List */}
       {activeTab === "list" && (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900 space-y-6">
-          {/* Filters Bar & View Mode Switcher */}
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <input
-                type="text"
-                placeholder="Search paper title or department..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
-              />
-              <span className="absolute left-3.5 top-3 text-xs text-slate-400 dark:text-slate-500">
-                🔍
-              </span>
-            </div>
-
-            {/* Select Dropdowns & View Switcher */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Department */}
-              {uniqueDepartments.length > 0 && (
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+          {/* Scope Selector Bar & Filters Bar */}
+          <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 dark:border-slate-800">
+            {/* Scope Filter Buttons (All vs My Uploads) */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setScopeFilter("all")}
+                  className={`rounded-lg px-4 py-1.5 text-xs font-bold transition ${
+                    scopeFilter === "all"
+                      ? "bg-blue-600 text-white shadow"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-300"
+                  }`}
                 >
-                  <option value="all">All Departments</option>
-                  {uniqueDepartments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
-              )}
+                  🌐 Total Portal Papers ({uploads.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScopeFilter("my")}
+                  className={`rounded-lg px-4 py-1.5 text-xs font-bold transition ${
+                    scopeFilter === "my"
+                      ? "bg-blue-600 text-white shadow"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-300"
+                  }`}
+                >
+                  👤 My Uploads Only
+                </button>
+              </div>
 
-              {/* Exam Type */}
-              <select
-                value={selectedExamType}
-                onChange={(e) => setSelectedExamType(e.target.value)}
-                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              >
-                <option value="all">All Exam Types</option>
-                <option value="Semester">Semester</option>
-                <option value="Internal">Internal</option>
-                <option value="Model">Model</option>
-              </select>
-
-              {/* View Switcher Toggle */}
+              {/* View Switcher Toggle (Grid vs Table) */}
               <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
                 <button
                   type="button"
@@ -294,7 +298,7 @@ function MyUploadsPage() {
                       : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
                   }`}
                 >
-                  田 Cards
+                  田 Grid View
                 </button>
                 <button
                   type="button"
@@ -305,18 +309,92 @@ function MyUploadsPage() {
                       : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
                   }`}
                 >
-                  ☰ List
+                  ☰ List View
                 </button>
               </div>
+            </div>
 
-              {/* Refresh */}
-              <button
-                onClick={fetchMyUploads}
-                title="Refresh Uploads List"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              >
-                🔄
-              </button>
+            {/* Search and Dropdowns */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between pt-2">
+              {/* Search input */}
+              <div className="relative flex-1 max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search by title, subject, or department..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
+                />
+                <span className="absolute left-3.5 top-3 text-xs text-slate-400 dark:text-slate-500">
+                  🔍
+                </span>
+              </div>
+
+              {/* Select Dropdowns */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Department */}
+                {uniqueDepartments.length > 0 && (
+                  <select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="all">All Departments</option>
+                    {uniqueDepartments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {/* Exam Type */}
+                <select
+                  value={selectedExamType}
+                  onChange={(e) => setSelectedExamType(e.target.value)}
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="all">All Exam Types</option>
+                  <option value="Semester">Semester</option>
+                  <option value="Internal">Internal</option>
+                  <option value="Model">Model</option>
+                </select>
+
+                {/* Semester */}
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 outline-none transition focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="all">All Semesters</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                    <option key={s} value={String(s)}>
+                      Semester {s}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Sort By */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 outline-none transition focus:border-blue-500 dark:border-blue-900/50 dark:bg-blue-950 dark:text-blue-300"
+                >
+                  <option value="newest">Sort: Newest First</option>
+                  <option value="oldest">Sort: Oldest First</option>
+                  <option value="downloads">Sort: Most Downloaded</option>
+                  <option value="title">Sort: Title (A-Z)</option>
+                </select>
+
+                {/* Refresh */}
+                <button
+                  onClick={fetchUploads}
+                  title="Refresh Question Papers List"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                >
+                  🔄
+                </button>
+              </div>
             </div>
           </div>
 
@@ -334,7 +412,7 @@ function MyUploadsPage() {
             <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center dark:border-slate-800 dark:bg-slate-800/40 space-y-3">
               <div className="text-4xl">📄</div>
               <h3 className="text-base font-bold text-slate-800 dark:text-white">
-                No uploaded question papers found
+                No question papers found
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 {searchQuery ||
@@ -342,16 +420,14 @@ function MyUploadsPage() {
                 selectedDepartment !== "all" ||
                 selectedSemester !== "all"
                   ? "Try resetting your search query or filters."
-                  : "You haven't uploaded any question papers yet."}
+                  : "No question papers available in the selected list."}
               </p>
-              {!uploads.length && (
-                <Link
-                  to="/faculty/upload"
-                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-blue-700"
-                >
-                  + Upload First Paper
-                </Link>
-              )}
+              <Link
+                to="/faculty/upload"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-blue-700"
+              >
+                + Upload Paper
+              </Link>
             </div>
           ) : viewMode === "grid" ? (
             /* Grid View Mode */
@@ -384,6 +460,14 @@ function MyUploadsPage() {
                       <span>Sem {paper.semester}</span>
                       <span>•</span>
                       <span>{paper.yearOfStudy || "N/A"}</span>
+                      {paper.uploadedBy?.name && (
+                        <>
+                          <span>•</span>
+                          <span className="text-blue-600 dark:text-blue-400">
+                            By: {paper.uploadedBy.name}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -458,6 +542,14 @@ function MyUploadsPage() {
                           <span>
                             {paper.month} {paper.year}
                           </span>
+                          {paper.uploadedBy?.name && (
+                            <>
+                              <span>•</span>
+                              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                Uploaded by: {paper.uploadedBy.name}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

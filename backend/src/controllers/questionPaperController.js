@@ -483,15 +483,15 @@ exports.deleteQuestionPaper = async (
       });
     }
 
-    // Authorization
+    // Authorization: Allow uploader, faculty, or admin to delete paper
     if (
-      paper.uploadedBy.toString() !==
-        req.user._id.toString() &&
-      req.user.role !== "admin"
+      paper.uploadedBy?.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin" &&
+      req.user.role !== "faculty"
     ) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized",
+        message: "Not authorized to delete this question paper",
       });
     }
 
