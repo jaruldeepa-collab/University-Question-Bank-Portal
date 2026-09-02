@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import api from "../services/api";
-import PdfPreviewModal from "../components/PDFPreviewModal";
+import PdfPreviewModal from "../components/PdfPreviewModal";
 import EditPaperModal from "../components/EditPaperModal";
 import UploadStatistics from "../components/UploadStatistics";
 
