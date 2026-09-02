@@ -43,22 +43,32 @@ function MyUploadsPage() {
       setLoading(true);
       setError("");
 
-      // Fetch Total Question Paper List from backend
-      const response = await api.get("/question-papers?limit=100");
+      let papersList = [];
 
-      if (response.data.success) {
-        setUploads(response.data.papers || []);
+      // Try fetching my-uploads first
+      try {
+        const resMy = await api.get("/question-papers/my-uploads");
+        if (resMy.data.success && Array.isArray(resMy.data.papers)) {
+          papersList = resMy.data.papers;
+        }
+      } catch (myErr) {
+        console.warn("my-uploads fetch notice:", myErr?.response?.data?.message || myErr.message);
       }
+
+      // If my-uploads has no papers or erred, fallback to total question paper list
+      if (!papersList || papersList.length === 0) {
+        const resAll = await api.get("/question-papers?limit=100");
+        if (resAll.data.success && Array.isArray(resAll.data.papers)) {
+          papersList = resAll.data.papers;
+        }
+      }
+
+      setUploads(papersList || []);
     } catch (err) {
       console.error("Fetch Uploads Error:", err);
-      try {
-        const fallback = await api.get("/question-papers/my-uploads");
-        if (fallback.data.success) {
-          setUploads(fallback.data.papers || []);
-        }
-      } catch (fErr) {
-        setError(fErr.response?.data?.message || "Failed to load question papers.");
-      }
+      setError(
+        err.response?.data?.message || "Unable to load question papers. Please check connection."
+      );
     } finally {
       setLoading(false);
     }

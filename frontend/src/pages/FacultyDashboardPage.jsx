@@ -32,18 +32,29 @@ function FacultyDashboardPage() {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/question-papers/my-uploads");
+      let papersList = [];
 
-      if (response.data.success) {
-        setUploads(response.data.papers || []);
+      try {
+        const resMy = await api.get("/question-papers/my-uploads");
+        if (resMy.data.success && Array.isArray(resMy.data.papers)) {
+          papersList = resMy.data.papers;
+        }
+      } catch (myErr) {
+        console.warn("my-uploads fetch notice:", myErr?.response?.data?.message || myErr.message);
       }
+
+      if (!papersList || papersList.length === 0) {
+        const resAll = await api.get("/question-papers?limit=100");
+        if (resAll.data.success && Array.isArray(resAll.data.papers)) {
+          papersList = resAll.data.papers;
+        }
+      }
+
+      setUploads(papersList || []);
     } catch (err) {
       console.error("FAILED STATUS:", err.response?.status);
-      console.error("FAILED RESPONSE:", err.response?.data);
-      console.error("FULL ERROR:", err);
-
       setError(
-        err.response?.data?.message || "Failed to load your uploads."
+        err.response?.data?.message || "Failed to load question papers."
       );
     } finally {
       setLoading(false);
