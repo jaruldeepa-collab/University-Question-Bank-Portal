@@ -132,8 +132,8 @@ function Sidebar({ isOpen, onClose }) {
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 w-72 transform
-          border-r border-slate-200 bg-white
-          transition-transform duration-300
+          border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900
+          transition-colors duration-300 transition-transform
           lg:static lg:z-auto lg:block
           lg:min-h-[calc(100vh-4rem)]
           lg:w-64 lg:translate-x-0
@@ -145,14 +145,14 @@ function Sidebar({ isOpen, onClose }) {
 
           {/* Mobile Header */}
           <div className="mb-4 flex items-center justify-between lg:hidden">
-            <h2 className="text-lg font-bold text-slate-800">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
               Menu
             </h2>
 
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-xl text-slate-600 hover:bg-slate-100"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-label="Close menu"
             >
               ×
@@ -160,18 +160,18 @@ function Sidebar({ isOpen, onClose }) {
           </div>
 
           {/* User Info */}
-          <div className="mb-6 rounded-xl bg-blue-50 p-4">
+          <div className="mb-6 rounded-xl bg-blue-50 dark:bg-slate-800/80 p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
                 {user?.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
 
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-800">
+                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
                   {user?.name || "User"}
                 </p>
 
-                <p className="truncate text-xs capitalize text-slate-500">
+                <p className="truncate text-xs capitalize text-slate-500 dark:text-slate-400">
                   {role}
                 </p>
               </div>
@@ -187,10 +187,10 @@ function Sidebar({ isOpen, onClose }) {
                 end={item.end}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition ${
+                  `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400"
                   }`
                 }
               >
@@ -204,12 +204,12 @@ function Sidebar({ isOpen, onClose }) {
           </nav>
 
           {/* Account */}
-          <div className="mt-auto rounded-xl border border-slate-200 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <div className="mt-auto rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
               Account
             </p>
 
-            <p className="mt-1 text-sm font-semibold capitalize text-slate-700">
+            <p className="mt-1 text-sm font-semibold capitalize text-slate-700 dark:text-slate-200">
               {role}
             </p>
           </div>

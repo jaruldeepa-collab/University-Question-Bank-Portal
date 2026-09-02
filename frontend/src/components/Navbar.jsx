@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import api from "../services/api";
 import { clearUser } from "../redux/slices/authSlice";
+import ThemeToggle from "./ThemeToggle";
 
 function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
@@ -22,37 +23,32 @@ function Navbar({ onMenuClick }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-
         {/* Left Section */}
         <div className="flex items-center gap-3">
-
           {/* Mobile Menu Button */}
           <button
             type="button"
             onClick={onMenuClick}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-xl text-slate-700 transition hover:bg-slate-100 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-xl text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
             aria-label="Open menu"
           >
             ☰
           </button>
 
           {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white shadow-md shadow-blue-500/20">
               UQ
             </div>
 
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-slate-800">
+              <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                 University Question Bank
               </h1>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Portal
               </p>
             </div>
@@ -61,14 +57,16 @@ function Navbar({ onMenuClick }) {
 
         {/* Right Section */}
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Dark Mode Theme Toggle */}
+          <ThemeToggle />
 
           {user && (
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                 {user.name}
               </p>
 
-              <p className="text-xs capitalize text-slate-500">
+              <p className="text-xs capitalize text-slate-500 dark:text-slate-400">
                 {user.role}
               </p>
             </div>
@@ -77,7 +75,7 @@ function Navbar({ onMenuClick }) {
           {/* Profile */}
           <Link
             to="/profile"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700 transition hover:bg-blue-200"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700 transition hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900"
             title="Profile"
           >
             {user?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -87,7 +85,7 @@ function Navbar({ onMenuClick }) {
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 sm:block"
+            className="hidden rounded-xl border border-red-200 px-3.5 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/50 sm:block"
           >
             Logout
           </button>
